@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public Text healthText;
     public Text noticeText;
     public Text resultText;
-    public GameObject menu;
+    public Text startButtonText;
     public bool IsPlaying { get; private set; }
     public int Score { get; private set; }
     public int Wave { get; private set; }
@@ -23,8 +23,9 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
-        menu.SetActive(true);
-        resultText.text = "FOREST WARDEN\n\nProtect the clearing";
+        resultText.text = "Ready";
+        noticeText.text = "Next wave: 1";
+        startButtonText.text = "Start";
         player.ResetPlayer();
         Refresh();
     }
@@ -39,7 +40,9 @@ public class GameManager : MonoBehaviour
         player.ResetPlayer();
         enemyManager.ResetPool();
         missileManager.ResetPool();
-        menu.SetActive(false);
+        resultText.text = "Playing";
+        startButtonText.text = "Restart";
+        noticeText.text = "Next wave: 1";
         nextWave = Time.time + 1f;
         waiting = true;
         Refresh();
@@ -56,7 +59,7 @@ public class GameManager : MonoBehaviour
         if (!IsPlaying) return;
         if (waiting)
         {
-            noticeText.text = "WAVE " + (Wave + 1);
+            noticeText.text = "Next wave: " + (Wave + 1);
             if (Time.time >= nextWave)
             {
                 Wave++;
@@ -67,7 +70,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            noticeText.text = "";
+            noticeText.text = "Enemies: " + enemyManager.AliveCount;
             if (enemyManager.AliveCount == 0)
             {
                 if (Wave >= 3) Finish(true);
@@ -89,8 +92,8 @@ public class GameManager : MonoBehaviour
 
     void Refresh()
     {
-        scoreText.text = "SCORE  " + Score;
-        waveText.text = "WAVE  " + Wave + " / 3";
+        scoreText.text = "Score: " + Score;
+        waveText.text = "Wave: " + Wave + " / 3";
         healthText.text = "HP " + Mathf.CeilToInt(player.health.HP) + " / 100";
     }
 
@@ -99,9 +102,10 @@ public class GameManager : MonoBehaviour
         IsPlaying = false;
         Finished = true;
         Time.timeScale = 0f;
-        noticeText.text = "";
-        menu.SetActive(true);
-        resultText.text = (won ? "CLEARING SAVED" : "GAME OVER") + "\n\nScore  " + Score + "   |   Wave  " + Wave;
+        noticeText.text = "Enemies: " + enemyManager.AliveCount;
+        resultText.text = won ? "Game clear" : "Game over";
+        startButtonText.text = "Restart";
+        Refresh();
     }
 
     void OnDestroy()
