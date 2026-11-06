@@ -1,28 +1,46 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HPController : MonoBehaviour
+namespace DefaultNamespace
 {
-    public Slider hpSlider;
-    public float HP { get; private set; }
-    public float MaxHP { get; private set; }
-    public bool IsDead => HP <= 0f;
+    public class HPController : MonoBehaviour
+    { 
+        [SerializeField]
+       private Slider hpSlider;
+       public bool IsDead => currentHP <= 0;
+       public bool IsAlive => currentHP > 0;
+       private float currentHP;
+       private float maxHP;
 
-    public void SetHP(float value)
-    {
-        MaxHP = Mathf.Max(1f, value);
-        HP = MaxHP;
-        Refresh();
-    }
+       public void Awake()
+       {
+           if (hpSlider == null)
+           {
+               hpSlider = GetComponentInChildren<Slider>();
+           }
 
-    public void TakeDamage(float damage)
-    {
-        HP = Mathf.Max(0f, HP - Mathf.Max(0f, damage));
-        Refresh();
-    }
+           SetMaxHP(100);
+       }
 
-    void Refresh()
-    {
-        if (hpSlider != null) hpSlider.value = HP / MaxHP;
+       public void SetMaxHP(float maxHP)
+       {
+           this.maxHP = maxHP;
+           currentHP = maxHP;
+       }
+       
+       public void TakeDamage(float damage)
+       {
+           currentHP -= damage;
+           
+           if(currentHP <= 0)  currentHP = 0;
+           
+       }
+
+        void FixedUpdate()
+        {
+            hpSlider.value = currentHP/maxHP;
+            hpSlider.transform.rotation = Quaternion.identity;
+
+        } 
     }
 }

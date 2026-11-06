@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb5aedb61b4c4162972d21f7d237e564, type: 3}
+  m_Name: WeaponDefinition_Spread
+  m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.WeaponDefinition
+  weaponID: WID_Spread
+  weaponType: 0
+  firePatternType: 2
+  sprite: {fileID: 0}
+  BurstCount: 10
+  Damage: 10
+  Speed: 8
+  Range: 20
+  cooldown: 3
+  isPiercing: 0
+  color: {r: 0, g: 0.9370918, b: 1, a: 1}
+  projectilePrefab: {fileID: 927728192661007506, guid: c40eb6662475ebd438cfa470fe4e3f60, type: 3}

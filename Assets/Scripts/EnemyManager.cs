@@ -1,87 +1,143 @@
+using System;
+using System.Collections;
+using DefaultNamespace;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
+
+//1. 여러개의 적들을 관리 ( 생성, 위치, 명령)
+//2. 
 public class EnemyManager : MonoBehaviour
 {
-    public EnemyController prefab;
-    public PlayerController player;
-    public GameManager game;
-    public int poolSize = 12;
-    EnemyController[] enemies;
-    public int AliveCount
-    {
-        get
-        {
-            int count = 0;
-            for (int i = 0; i < enemies.Length; i++)
-            {
-                if (enemies[i].gameObject.activeSelf) count++;
-            }
-            return count;
-        }
-    }
+    public int maxEnemyCount = 3;
+    public EnemyController enemyPrefab;
+    public Transform parentCleaner;
+    private EnemyController[] enemies = null;
+    [SerializeField] private Transform player;
+    [SerializeField] [Range (0.5f,10f)]private float moveSpeed = 1.4f;
+    
+    [SerializeField] [Range(0,2f)] private float enemyPositionArrageOffset = 0.4f;
+    [SerializeField] private Transform enemySpawnPosition;
+    [SerializeField] private ScoreSystem scoreSystem;
 
+    [SerializeField] private BloodEffectPool bloodEffect;
+    
+    
+    
     void Awake()
     {
-        Physics2D.IgnoreLayerCollision(9, 9, true);
-        Physics2D.IgnoreLayerCollision(10, 10, true);
-        Physics2D.IgnoreLayerCollision(8, 10, true);
-        enemies = new EnemyController[poolSize];
-        for (int i = 0; i < enemies.Length; i++)
+
+        if (enemyPrefab == null)
         {
-            enemies[i] = Instantiate(prefab, transform);
-            enemies[i].game = game;
-            enemies[i].target = player.transform;
-            enemies[i].ReturnToPool();
+            Debug.LogError("EnemyManager enemyPrefab is null");
+
+            return;
         }
+
+        if (parentCleaner == null)
+        {
+            Debug.LogError("EnemyManager parentCleaner is null");
+
+            return;
+        }
+
+        if (player == null)
+        {
+            Debug.LogError("Player is null");
+
+            return;
+        }
+
+        if (bloodEffect == null)
+        {
+            Debug.LogError("BloodEffectPool is null");
+
+            return;
+        }
+ 
+
+        enemies = new EnemyController[maxEnemyCount];
+ 
+            
+        // 생성
+        for (int i = 0; i < maxEnemyCount; i++)
+        {
+            enemies[i] = Instantiate(enemyPrefab );
+            enemies[i].transform.SetParent(parentCleaner); 
+            enemies[i].SetTarget(player);
+            enemies[i].SetFillFullHP();
+            enemies[i].SetMoveSpeed(moveSpeed);
+            enemies[i].SetColor(new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
+            enemies[i].OnDied += HandleEnemyDieEvent;
+            enemies[i].OnHit += HandleEnemyHitEvent;
+        }
+
+        //좌표 설정
+        OnArrageAllEnemiesPosition(); 
     }
 
-    public void SpawnWave(int wave)
-    {
-        if (wave == 1) SpawnCircle();
-        else if (wave == 2) SpawnGrid();
-        else SpawnRows();
+    // 구독시 생명주기가 다를 수 있어서 더이상 이벤트를 받을 필요가 없는 시점에는 구독을 해제하는 습관을 가져야한다. 
+    public void OnDestroy()
+    { 
+        if (enemies == null) return;
+
+        for (int i = 0; i < maxEnemyCount; i++)
+        {
+            if (enemies[i] != null) enemies[i].OnDied -= HandleEnemyDieEvent;
+            if (enemies[i] != null) enemies[i].OnHit -= HandleEnemyHitEvent;
+        } 
     }
 
-    void SpawnCircle()
+
+    public void HandleEnemyDieEvent(Color color,Vector3 hitPoint, Vector3 direction)
     {
-        float angle = 0f;
-        float angleOffset = 2f * Mathf.PI / enemies.Length;
-        float radius = 4f;
-        for (int i = 0; i < enemies.Length; i++)
-        {
-            float x = Mathf.Sin(angle) * radius;
-            float y = Mathf.Cos(angle) * radius;
-            enemies[i].Spawn(new Vector2(x, y));
-            angle += angleOffset;
-        }
+        //1. 죽는 이팩트 처리
+        
+        bloodEffect.Show(color, hitPoint, direction, BloodEffectPool.BloodEffectType.large);
+        
+        //2.  죽는 사운드 효과음 처리 
+        
+        //3.  죽을 때 점수처리..
+        scoreSystem.AddScore(10);
     }
 
-    void SpawnGrid()
+    public void HandleEnemyHitEvent(Color color,Vector3 hitPoint, Vector3 direction)
     {
-        for (int i = 0; i < enemies.Length; i++)
-        {
-            float x = -5f + (i % 6) * 2f;
-            float y = 3.8f - (i / 6) * 1.2f;
-            enemies[i].Spawn(new Vector2(x, y));
-        }
+        //1. 맞을 때 이팩트 처리
+         
+        bloodEffect.Show(color, hitPoint, direction, BloodEffectPool.BloodEffectType.small);
+        
+        
+        //2. 맞을 때 사운드 처리  
     }
 
-    void SpawnRows()
-    {
-        for (int i = 0; i < enemies.Length; i++)
-        {
-            float x = -5f + (i % 6) * 2f;
-            float y = 3.5f;
-            if (i >= 6) y = -3.5f;
-            enemies[i].Spawn(new Vector2(x, y));
-        }
-    }
+    
+    
 
-    public void ResetPool()
-    {
-        for (int i = 0; i < enemies.Length; i++)
+    // 제가 0번키를 누를때마다..적들이 위치로...정렬. 
+    public void OnArrageAllEnemiesPosition()
+    { 
+      //  int enemyArrangeRowX = Random.Range(1, 20);
+       // int enemyArrangeRowY = Random.Range(1, 20);
+
+        float rad = 0;
+        float radianOffset = (2 * Mathf.PI) / (float)maxEnemyCount;
+        float radius =8F;
+        
+        Vector3 center = player.position;
+        for (int i = 0; i < maxEnemyCount; i++)
         {
-            enemies[i].ReturnToPool();
+           // var pos = new Vector3((i % enemyArrangeRowX) * enemyPositionArrageOffset, (i / enemyArrangeRowY) * enemyPositionArrageOffset, 0);
+
+           rad += radianOffset;
+           var pos = new Vector3(Mathf.Sin(rad) *radius, Mathf.Cos(rad)*radius, 0);
+            enemies[i].transform.position =center + pos;
+            enemies[i].gameObject.SetActive(true);
         }
     }
+    
+     
+       
+
+     
 }

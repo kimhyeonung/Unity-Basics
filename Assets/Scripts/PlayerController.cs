@@ -1,80 +1,99 @@
+using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using FWeapon;
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float fireInterval = 0.2f;
-    public MissileManager missileManager;
-    public GameManager game;
-    public Transform visual;
-    public HPController health;
-    Rigidbody2D body;
-    SpriteRenderer sprite;
-    Vector2 move;
-    Vector2 aim = Vector2.up;
-    float nextShot;
-    float invincibleUntil;
+   
+    
+    public GameObject gunMuzzle;
+    [Range (0.3f,1f)] public float muzzlePosOffset = 0.5f;
+    [Range(0, 50)] public  float moveSpeed = 5.0f;
+ 
+  
+    public  HPController hpControllerPrefab; 
+    
+    private HPController hpController =null;
 
-    void Awake()
-    {
-        body = GetComponent<Rigidbody2D>();
-        sprite = visual.GetComponent<SpriteRenderer>();
+    [SerializeField] private WeaponController weaponController;
+    
+    
+    private Vector3 moveDirection = Vector3.zero;
+    private Vector3 muzzlePosition = Vector3.zero;
+ 
+    private void Awake()
+    {  
+
+         if (gunMuzzle == null)
+         {
+             Debug.LogError("PlayerController :: GunMuzzle is null  !!!!!!!!!!  ");
+         }
+
+         if (hpControllerPrefab == null)
+         {
+             Debug.LogError("PlayerController :: hpControllerPrefab is null  !!!!!!!!!!!  ");
+
+             return;
+         }
+
+         if (weaponController == null)
+         {
+             Debug.LogError("PlayerController :: WeaponController is null");
+             
+         }
+
+         if (hpController == null)
+         {
+             hpController = Instantiate(hpControllerPrefab ,transform);
+         }
+         
+         
+         
+         hpController.SetMaxHP(100);
     }
 
-    public void ResetPlayer()
-    {
-        body.position = Vector2.zero;
-        body.linearVelocity = Vector2.zero;
-        health.SetHP(100f);
-        invincibleUntil = 0f;
-        nextShot = 0f;
-        sprite.color = Color.white;
-    }
-
-    void Update()
-    {
-        move = Vector2.zero;
-        if (!game.IsPlaying) return;
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard != null)
+    private void Update()
+    { 
+        if(hpController.IsDead)
         {
-            if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) move.x += 1f;
-            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) move.x -= 1f;
-            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) move.y += 1f;
-            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) move.y -= 1f;
+            return;
         }
-        move = move.normalized;
-        Mouse mouse = Mouse.current;
-        if (mouse != null)
-        {
-            Vector2 point = Camera.main.ScreenToWorldPoint(mouse.position.ReadValue());
-            if ((point - body.position).sqrMagnitude > 0.01f) aim = (point - body.position).normalized;
-        }
-        bool fire = false;
-        if (mouse != null && mouse.leftButton.isPressed) fire = true;
-        if (keyboard != null && keyboard.spaceKey.isPressed) fire = true;
-        if (fire && Time.time >= nextShot)
-        {
-            if (missileManager.Fire(body.position + aim * 0.65f, aim)) nextShot = Time.time + fireInterval;
-        }
-        sprite.flipX = aim.x < 0f;
+
+        transform.position += moveDirection * moveSpeed * Time.deltaTime; 
+        
+        gunMuzzle.transform.position = transform.position  +(muzzlePosition*muzzlePosOffset);
     }
 
-    void FixedUpdate()
+    public void OnMove(InputAction.CallbackContext context)
     {
-        if (!game.IsPlaying) return;
-        Vector2 position = body.position + move * moveSpeed * Time.fixedDeltaTime;
-        position.x = Mathf.Clamp(position.x, -8.7f, 8.7f);
-        position.y = Mathf.Clamp(position.y, -4.5f, 4.5f);
-        body.MovePosition(position);
+        if (context.started) return;
+        
+        moveDirection = context.ReadValue<Vector2>();
+
+        if(moveDirection != Vector3.zero) muzzlePosition = moveDirection;
     }
 
-    public void TakeDamage(float damage)
+    public void OnSwitchWeapon(InputAction.CallbackContext context) 
     {
-        if (!game.IsPlaying || Time.time < invincibleUntil) return;
-        health.TakeDamage(damage);
-        invincibleUntil = Time.time + 0.8f;
-        if (health.IsDead) game.Finish(false);
+        if (!context.performed) return;
+
+
+        weaponController.SwitchWeapon( ); 
+    }
+
+    public void OnFire(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return; 
+       
+        weaponController.Fire(transform  , muzzlePosition);
+     
+    }
+
+    public void OnCollisionEnter2D(Collision2D other)
+    {
+        hpController.TakeDamage(2);
+
+       
     }
 }
