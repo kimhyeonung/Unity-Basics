@@ -11,10 +11,14 @@ namespace FWeapon
             Orbiting,
             Returning
         }
-
-        public FlightPhase Phase { get; private set; }
-        public int CompletedCycles { get; private set; }
-
+        public FlightPhase Phase
+        {
+            get; private set;
+        }
+        public int CompletedCycles
+        {
+            get; private set;
+        }
         ThreadloomDefinition settings;
         TrailRenderer thread;
         Vector3 origin;
@@ -40,14 +44,12 @@ namespace FWeapon
                 thread.emitting = false;
             }
         }
-
         public override void Fire(Vector3 position, Vector3 direction, int generation = 0)
         {
             if (flying || direction.sqrMagnitude < 0.001f)
             {
                 return;
             }
-
             base.Fire(position, direction.normalized, generation);
             origin = position;
             forward = direction.normalized;
@@ -62,14 +64,12 @@ namespace FWeapon
                 thread.emitting = true;
             }
         }
-
         protected override void Move()
         {
             if (!flying)
             {
                 return;
             }
-
             age += Time.deltaTime;
             Vector3 previous = transform.position;
             float amplitude = settings != null ? settings.weaveAmplitude : 0.65f;
@@ -97,7 +97,6 @@ namespace FWeapon
                     returnStart = transform.position;
                     Phase = FlightPhase.Returning;
                 }
-
                 float t = Mathf.Clamp01((age - outboundDuration - orbitDuration) / returnDuration);
                 transform.position = Vector3.Lerp(returnStart, origin, Mathf.SmoothStep(0, 1, t)) + side * (Mathf.Sin(t * Mathf.PI) * amplitude);
                 if (t >= 1)
@@ -107,7 +106,6 @@ namespace FWeapon
                     return;
                 }
             }
-
             Vector3 velocity = transform.position - previous;
             if (velocity.sqrMagnitude > 0.000001f)
             {
@@ -115,7 +113,6 @@ namespace FWeapon
                 transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg);
             }
         }
-
         public override void ReturnToPool()
         {
             if (thread != null)
@@ -123,7 +120,6 @@ namespace FWeapon
                 thread.emitting = false;
                 thread.Clear();
             }
-
             age = 0;
             Phase = FlightPhase.Ready;
             base.ReturnToPool();

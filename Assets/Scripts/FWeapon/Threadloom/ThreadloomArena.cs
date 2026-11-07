@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using DefaultNamespace;
-using TMPro;
+using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,12 +13,18 @@ namespace FWeapon
         public Transform player;
         public Transform muzzle;
         public Transform pointer;
-        public TextMeshProUGUI scoreText;
-        public TextMeshProUGUI poolText;
+        public Image hitsBar;
+        public Image poolBar;
+        public Image[] weaponIndicators;
         public List<EnemyController> targets = new List<EnemyController>();
-        public int Hits { get; private set; }
-        public int Defeated { get; private set; }
-
+        public int Hits
+        {
+            get; private set;
+        }
+        public int Defeated
+        {
+            get; private set;
+        }
         readonly Dictionary<EnemyController, Vector3> spawnPositions = new Dictionary<EnemyController, Vector3>();
         readonly Dictionary<EnemyController, Color> spawnColors = new Dictionary<EnemyController, Color>();
         readonly Dictionary<EnemyController, Vector3> spawnScales = new Dictionary<EnemyController, Vector3>();
@@ -39,7 +45,6 @@ namespace FWeapon
                 target.OnDied += OnDied;
             }
         }
-
         void OnDestroy()
         {
             foreach (EnemyController target in targets)
@@ -51,7 +56,6 @@ namespace FWeapon
                 }
             }
         }
-
         void Update()
         {
             var keyboard = Keyboard.current;
@@ -63,22 +67,18 @@ namespace FWeapon
                 {
                     movement.y++;
                 }
-
                 if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)
                 {
                     movement.y--;
                 }
-
                 if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
                 {
                     movement.x--;
                 }
-
                 if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
                 {
                     movement.x++;
                 }
-
                 Vector3 position = player.position + (Vector3)movement.normalized * (4 * Time.deltaTime);
                 position.x = Mathf.Clamp(position.x, -9.6f, 9.6f);
                 position.y = Mathf.Clamp(position.y, -4.3f, 4.3f);
@@ -87,25 +87,21 @@ namespace FWeapon
                 {
                     weapon.SwitchWeapon();
                 }
-
                 if (keyboard.rKey.wasPressedThisFrame)
                 {
                     ResetTargets();
                 }
             }
-
             if (mouse != null)
             {
                 Vector3 cursor = Camera.main.ScreenToWorldPoint(new Vector3(mouse.position.ReadValue().x, mouse.position.ReadValue().y, 10));
                 cursor.z = 0;
                 SetAim(cursor - player.position);
             }
-
             if ((mouse != null && mouse.leftButton.isPressed) || (keyboard != null && keyboard.spaceKey.isPressed))
             {
                 TryFire();
             }
-
             foreach (EnemyController target in targets)
             {
                 if (!target.gameObject.activeSelf)
@@ -114,15 +110,17 @@ namespace FWeapon
                     {
                         respawnTimes[target] = Time.time + 2.5f;
                     }
-
                     if (Time.time >= respawnTimes[target])
                     {
                         Respawn(target);
                     }
                 }
             }
-
-            scoreText.text = "HITS  " + Hits.ToString("000") + "     CLEARED  " + Defeated.ToString("00");
+            if (hitsBar != null)
+            hitsBar.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300 * Mathf.Clamp01(Hits / 100f));
+            if (weaponIndicators != null)
+            for (int i = 0; i < weaponIndicators.Length; i++)
+            weaponIndicators[i].color = i == weapon.currentWeaponIndex ? library.Weaponlib[i].color : Color.gray;
             int active = 0;
             int total = 0;
             foreach (ProjectilePool pool in weapon.GetComponentsInChildren<ProjectilePool>())
@@ -136,35 +134,30 @@ namespace FWeapon
                     }
                 }
             }
-
-            poolText.text = "POOL  " + active.ToString("00") + " / " + total.ToString("00");
+            if (poolBar != null)
+            poolBar.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, total > 0 ? 250f * active / total : 0);
         }
-
         public void SetAim(Vector3 direction)
         {
             if (direction.sqrMagnitude < 0.001f)
             {
                 return;
             }
-
             aim = direction.normalized;
             muzzle.position = player.position + aim * 0.55f;
             pointer.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(aim.y, aim.x) * Mathf.Rad2Deg);
         }
-
         public bool TryFire()
         {
             if (Time.time < nextFireTime)
             {
                 return false;
             }
-
             WeaponDefinition definition = library.Weaponlib[weapon.currentWeaponIndex];
             nextFireTime = Time.time + Mathf.Max(0.1f, definition.cooldown);
             weapon.Fire(muzzle, aim);
             return true;
         }
-
         public void ResetTargets()
         {
             foreach (EnemyController target in targets)
@@ -172,7 +165,6 @@ namespace FWeapon
                 Respawn(target);
             }
         }
-
         void Respawn(EnemyController target)
         {
             target.transform.position = spawnPositions[target];
@@ -182,12 +174,10 @@ namespace FWeapon
             target.transform.localScale = spawnScales[target];
             respawnTimes[target] = 0;
         }
-
         void OnHit(Color color, Vector3 position, Vector3 direction)
         {
             Hits++;
         }
-
         void OnDied(Color color, Vector3 position, Vector3 direction)
         {
             Defeated++;

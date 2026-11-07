@@ -11,6 +11,7 @@ namespace FWeapon
                 FirePatternType.Spread => new FirePattern_Spread(),
                 FirePatternType.Burst => new FirePattern_Burst(),
                 FirePatternType.Normal => new FirePattern_Normal(),
+                FirePatternType.Triple => new FirePattern_Triple(),
                 FirePatternType.Weave => new FirePattern_Weave(),
                 _ => Log(firePatternType),
             };

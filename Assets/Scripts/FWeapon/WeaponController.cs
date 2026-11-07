@@ -18,6 +18,7 @@ namespace FWeapon
         Burst=1,
         Spread=2,
         Weave=3,
+        Triple=4,
     }
 
     public class RuntimeWeapon
@@ -62,12 +63,6 @@ namespace FWeapon
        
         void Awake() 
         {
-            if (TextUI_weaponID == null)
-            {
-                Debug.LogError("WeaponController"+ " TextUI_weaponID is null");
-                
-                return;
-            }
             if (weaponLibList == null || weaponLibList.Count == 0)
             {
                Debug.LogError("WeaponController"+"weaponLibrary List is empty");

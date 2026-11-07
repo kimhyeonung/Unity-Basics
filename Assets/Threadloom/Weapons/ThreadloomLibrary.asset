@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: ThreadloomLibrary
   m_EditorClassIdentifier: Assembly-CSharp::FWeapon.WeaponLibrary
   Weaponlib:
-  - {fileID: 11400000, guid: 30c484be30efb164490c61c3f049485f, type: 2}
-  - {fileID: 11400000, guid: db22e94bd1aa04e429a87c92ecec5266, type: 2}
-  - {fileID: 11400000, guid: 3e9a229f6ef60504b900e41998c4e85e, type: 2}
+  - {fileID: 11400000, guid: 42518af0c30c37c41b1481aa1b1a74f7, type: 2}
+  - {fileID: 11400000, guid: f2d495af96fc1234b8cc317f719c0549, type: 2}
+  - {fileID: 11400000, guid: f206f37eb0eb71342b29f014eb6f6bf9, type: 2}

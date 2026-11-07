@@ -11,7 +11,6 @@ namespace FWeapon
             {
                 yield break;
             }
-
             int count = Mathf.Clamp(burstCount, 1, 5);
             Vector3 origin = startPos.position;
             Vector3 forward = direction.normalized;
