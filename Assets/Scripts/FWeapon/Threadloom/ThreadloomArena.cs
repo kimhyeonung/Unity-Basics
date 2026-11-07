@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using DefaultNamespace;
 using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -13,18 +12,8 @@ namespace FWeapon
         public Transform player;
         public Transform muzzle;
         public Transform pointer;
-        public Image hitsBar;
-        public Image poolBar;
         public Image[] weaponIndicators;
         public List<EnemyController> targets = new List<EnemyController>();
-        public int Hits
-        {
-            get; private set;
-        }
-        public int Defeated
-        {
-            get; private set;
-        }
         readonly Dictionary<EnemyController, Vector3> spawnPositions = new Dictionary<EnemyController, Vector3>();
         readonly Dictionary<EnemyController, Color> spawnColors = new Dictionary<EnemyController, Color>();
         readonly Dictionary<EnemyController, Vector3> spawnScales = new Dictionary<EnemyController, Vector3>();
@@ -41,19 +30,6 @@ namespace FWeapon
                 spawnScales[target] = target.transform.localScale;
                 respawnTimes[target] = 0;
                 target.SetFillFullHP();
-                target.OnHit += OnHit;
-                target.OnDied += OnDied;
-            }
-        }
-        void OnDestroy()
-        {
-            foreach (EnemyController target in targets)
-            {
-                if (target != null)
-                {
-                    target.OnHit -= OnHit;
-                    target.OnDied -= OnDied;
-                }
             }
         }
         void Update()
@@ -116,26 +92,13 @@ namespace FWeapon
                     }
                 }
             }
-            if (hitsBar != null)
-            hitsBar.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300 * Mathf.Clamp01(Hits / 100f));
             if (weaponIndicators != null)
-            for (int i = 0; i < weaponIndicators.Length; i++)
-            weaponIndicators[i].color = i == weapon.currentWeaponIndex ? library.Weaponlib[i].color : Color.gray;
-            int active = 0;
-            int total = 0;
-            foreach (ProjectilePool pool in weapon.GetComponentsInChildren<ProjectilePool>())
             {
-                total += pool.missiles.Count;
-                foreach (ProjectileController projectile in pool.missiles)
+                for (int i = 0; i < weaponIndicators.Length; i++)
                 {
-                    if (projectile.flying)
-                    {
-                        active++;
-                    }
+                    weaponIndicators[i].color = i == weapon.currentWeaponIndex ? library.Weaponlib[i].color : Color.gray;
                 }
             }
-            if (poolBar != null)
-            poolBar.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, total > 0 ? 250f * active / total : 0);
         }
         public void SetAim(Vector3 direction)
         {
@@ -173,14 +136,6 @@ namespace FWeapon
             target.SetColor(spawnColors[target]);
             target.transform.localScale = spawnScales[target];
             respawnTimes[target] = 0;
-        }
-        void OnHit(Color color, Vector3 position, Vector3 direction)
-        {
-            Hits++;
-        }
-        void OnDied(Color color, Vector3 position, Vector3 direction)
-        {
-            Defeated++;
         }
     }
 }

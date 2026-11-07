@@ -78,8 +78,6 @@ public static class ThreadloomSceneBuilder
         var indicators = new Image[3];
         for (int i = 0; i < indicators.Length; i++)
         indicators[i] = Indicator(canvas.transform, "Weapon_" + i, new Vector2(50 + i * 55, -40), new Vector2(40, 40), Color.white);
-        var score = Indicator(canvas.transform, "Hits", new Vector2(780, -40), new Vector2(300, 20), new Color(0.4f, 1, 0.95f));
-        var poolLabel = Indicator(canvas.transform, "PoolUsage", new Vector2(980, -650), new Vector2(250, 20), new Color(1, 0.64f, 0.24f));
         var player = SpriteObject("Player", ring, new Vector3(-6, 0, 0), new Vector3(0.8f, 0.8f, 1), new Color(0.4f, 1, 0.95f));
         player.tag = "Player";
         var pointer = new GameObject("Aim").transform;
@@ -102,8 +100,6 @@ public static class ThreadloomSceneBuilder
         arena.player = player.transform;
         arena.pointer = pointer;
         arena.muzzle = muzzle;
-        arena.hitsBar = score;
-        arena.poolBar = poolLabel;
         arena.weaponIndicators = indicators;
         var positions = new[]
         {

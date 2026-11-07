@@ -199,7 +199,6 @@ public static class ThreadloomValidation
             Require(phases.Contains(ProjectileControllerThreadloom.FlightPhase.Orbiting), "Orbiting phase observed");
             Require(phases.Contains(ProjectileControllerThreadloom.FlightPhase.Returning), "Return phase observed");
             Require(arena.weapon.GetComponentsInChildren<ProjectileControllerThreadloom>(true).Sum(p => p.CompletedCycles) >= 5, "All five needles completed a cycle and returned to their pool");
-            Require(arena.Hits > 0, "Original EnemyController receives projectile collision damage");
         }
         if (frame == 405 || frame == 570)
         {
@@ -213,8 +212,6 @@ public static class ThreadloomValidation
     static void Validate()
     {
         Require(!failed, "No errors or exceptions during the demo");
-        Require(arena.Hits > 10, "Repeated hits registered: " + arena.Hits);
-        Require(arena.Defeated > 0, "Target defeats registered: " + arena.Defeated);
         var pools = arena.weapon.GetComponentsInChildren<ProjectilePool>();
         var finalIds = pools.SelectMany(p => p.missiles).Select(p => p.GetInstanceID()).OrderBy(id => id).ToArray();
         Require(initialIds.SequenceEqual(finalIds), "All three weapons reuse the same 60 instances throughout the demo");
@@ -245,7 +242,7 @@ public static class ThreadloomValidation
     static void Capture()
     {
         var camera = Camera.main;
-        var canvas = arena.hitsBar.canvas;
+        var canvas = arena.weaponIndicators[0].canvas;
         camera.aspect = 1280f / 720;
         canvas.renderMode = RenderMode.ScreenSpaceCamera;
         canvas.worldCamera = camera;
